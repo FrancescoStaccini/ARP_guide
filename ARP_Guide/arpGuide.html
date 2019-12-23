@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<!-- <html lang="en"> -->
+<title>ARP-Matrix</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+<style>
+body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
+body {font-size:16px;}
+.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
+.w3-half img:hover{opacity:1}
+</style>
+<body>
+
+  <!-- Sidebar/menu -->
+  <nav class="w3-sidebar w3-blue w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;font-weight:bold;" id="mySidebar"><br>
+    <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-hide-large w3-display-topleft" style="width:100%;font-size:22px">Close Menu</a>
+    <div class="w3-container">
+      <h3 class="w3-padding-64"><b>ARP Matrix</b></h3>
+    </div>
+    <div class="w3-bar-block">
+
+    <a href="#intro" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Intro</a>
+    <a href="#matrix" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Matrice ARP</a>
+    <a href="#implementation" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Implementazione</a>  
+    <a href="#graph" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Grafico Heatmap</a> 
+    </div>
+  </nav>
+
+  <!-- Top menu on small screens -->
+  <header class="w3-container w3-top w3-hide-large w3-blue w3-xlarge w3-padding">
+    <a href="javascript:void(0)" class="w3-button w3-blue w3-margin-right" onclick="w3_open()">&#9776;</a>
+    <span>Documentazione Matrice ARP  </span>
+  </header>
+
+  <!-- Overlay effect when opening sidebar on small screens -->
+  <div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+  <!-- PAGE CONTENT -->
+  <div class="w3-main" style="margin-left:340px;margin-right:40px">
+
+    <!-- Intro -->
+    <div class="w3-container" id="intro" style="margin-top:75px">
+        <h1 class="w3-xxxlarge w3-text-black"><b>Intro</b></h1>
+        <hr style="width:50px;border:5px solid rgb(67, 182, 192)" class="w3-round"> 
+
+        <p>
+        La struttura dati in questione è nata con l'intento di monitorare la comunicazione, 
+        nel particolare il <a href="https://wikipedia.org/wiki/Address_Resolution_Protocol" download>Protocollo ARP</a>
+        , tra dispositivi di varia natura, al fine di rilevare pattern utili per identificare i possessori di tali dispositivi.
+        </p>
+        <p>
+        L'intero lavoro è stato realizzato all'interno del software open-source <a href="https://github.com/ntop/ntopng" download>ntopng</a>:
+        sono state create e/o estese componenti a partire dai livelli più bassi (engine, C++) 
+        fino al livello presentazione (script lua e javascript per l'interfaccia grafica).
+        </p>
+        <p> 
+          <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+          <p>Importante! Ricorda di attivare la matrice ARP dalle preferenze di ntopng:</p>
+            <ul>
+              <li><p>Accedere all'interfaccia web di ntopng (di default, inserire "localhost:3000" nella URL del browser)</p></li>
+              <li><p>Selezionare l'ingranaggio in alto a destra della pagina</p></li>
+              <li><p>Nel riquadro preferenze selezionare la voce Misc </p></li>
+              <li><p>Nella sezione hosts, spuntare ARP Matrix</p></li>
+          </ul>
+        </p>
+
+    </div>
+
+    <!-- Matrix -->
+    <div class="w3-container" id="matrix" style="margin-top:75px">
+      <h1 class="w3-xxxlarge w3-text-black"><b>Matrice ARP</b></h1>
+      <hr style="width:50px;border:5px solid rgb(67, 182, 192)" class="w3-round">
+
+      <p>La matrice è stata concepita con l'idea di raccogliere statistiche riguardanti la comunicazione tra dispositivi: 
+        ogni cella contiene contatori relativi allo scambio di messaggi tra due dispositivi specifici, 
+        ed è infatti identificata attraverso gli indirizzi di rete utlilzzati da tali dispositivi (IP e MAC)
+      </p>
+
+      <img src="img/arpmat.png" width="600" height="300" alt="matrix arp image">  
+
+      <p>La matrice ARP è stata implementata sotto forma di tabella hash bidirezionale. 
+        Di seguito è presente la documentazione, mentre il codice è visionabile 
+        <a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsHashMatrix.cpp" download>QUI</a> e 
+        <a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsMatrixElement.cpp" download>QUI</a>.
+      </p>
+      <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+      <p>La matrice ARP è utilizzabile a livello di scripting Lua attraverso le 
+      <a href="https://www.ntop.org/guides/ntopng/api/" download>API</a> di ntopng, 
+        è infatti possibile ottenerla invocando "interface.getArpStatsMatrixInfo()". 
+        tale funzione restituirà al chiamante una tabella Lua, indicizzata per IP, 
+        contenente i contatori di pacchetti ARP (request/response) del mittente e del destinatario. 
+        È importante far presente che, per motivi di prestazioni, dopo un certo periodo di inattività di un elemento della matrice 
+        (cioè i due host non comunicano da un pò), non è garantito che tale elemento resti in memoria.
+      </p>
+      <p>
+        Per ulteriori informazioni riguardo le politiche di gestione della matrice, visionare, oltre al codice mensionato sopra, 
+        anche le classi padri:
+        <a href="https://github.com/ntop/ntopng/blob/dev/src/GenericHash.cpp" download>GenericHash</a> e 
+        <a href="https://github.com/ntop/ntopng/blob/dev/src/GenericHashEntry.cpp" download>GenericHashEntry</a>.         
+      </p>
+
+
+    </div>
+
+    <!-- Implementation -->
+    <div class="w3-container" style="margin-top:60px" id="implementation">
+        <h1 class="w3-xxxlarge w3-text-black"><b>Implementazione</b></h1>
+        <hr style="width:50px;border:5px solid rgb(67, 182, 192)" class="w3-round">
+
+        <p class = "w3-xlarge w3-text-black">File Interessati</p>
+        Per quanto riguarda l'architetturadi ntiong,questi file si trovano a livello engine: si intende il livello più basso e performante del software, scritto in C++, 
+        in cui si effettuano le operazioni computazionalmente complesse e pesanti.
+        <br>
+        Di seguito i file di ntopng che sono stati creati/mofdificati e le relative funzioni:
+        <ul>
+            <li><p><a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsHashMatrix.cpp" download>
+              ArpStatsHashMatrix.cpp</a> e ArpStatsMatrixElement.cpp: contengono l'implementazione della
+              matrice ARP ei suoi elementi;
+            </p></li>
+            <li><p><a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsMatrixElement.cpp" download>
+              ArpStatsMatrixElement.cpp</a>; file in cui viengono gestiti il flussi di pacchetti provenienti dall'interfaccia di rete;
+              è qui che la matrice viene popolata, allocata e gestita.
+            </p></li>
+            <li><p><a href="https://github.com/ntop/ntopng/blob/dev/src/LuaEngine.cpp" download>
+              LuaEngine.cpp</a>; file grazie al quale la matrice viene esposta come API appartenente alla classe Interface</p></li>
+        </ul>
+
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+        <p class = "w3-xlarge w3-text-black">Funzioni e strutture</p>
+        
+        <!-- -------------- -->
+
+        <p>All'interno di <a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsHashMatrix.cpp" download>
+        ArpStatsHashMatrix</a> sono presenti:
+        </p><br>
+
+        <p><b>
+        typedef struct {
+          lua_State* vm;
+          u_int64_t entry_id;
+        } print_all_arp_stats_data_t;
+        </p></b>
+        <p>Struttura creata allo scopo di "stampare" nello stack della VM LUA la MAtrice ARP</p>
+
+        <!-- -------------- -->
+
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+        <p><b>
+        static bool print_all_arp_stats(GenericHashEntry *e, void *user_data, bool *matched)
+        </p></b>
+        Popola lo stack della VM LUA con la Matrice ARP
+        <br><br>
+        Parametri:<br>
+        - GenericHashEntry *e: puntatore all'elemento della matrice
+        <br>
+        - void *user_data: puntatore alla struttura "print_all_arp_stats_data_t"
+        <br>
+        - bool *matched: flag per il match della entry
+        <br><br>
+        Risultato: True se sono state stampate tutte le entry, False altrimenti (quindi continua a scorrere la struttura)
+
+        <!-- -------------- -->
+
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+        <p><b>
+        ArpStatsHashMatrix::ArpStatsHashMatrix(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size)
+        </p></b>
+        <p>Metodo costruttore della ArpStatsHashMatrix</p>
+        Parametri:<br>
+        - NetworkInterface *_iface: puntatore all' interfaccia da cui elaboro i messaggi ARP
+        <br>
+        - u_int _num_hashes: numero di entry della tabella hash
+        <br>
+        - u_int _max_hash_size: numero massimo di entry della tabella hash
+        <br><br>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+        <p><b>
+          ArpStatsMatrixElement* ArpStatsHashMatrix::get
+          (const u_int8_t _src_mac[6], const u_int32_t _src_ip, const u_int32_t _dst_ip, bool * const src2dst)
+        </p></b>
+        <p>Metodo getter per i singoli elementi della matrice</p>
+        Parametri:<br>
+        - u_int8_t _src_mac: Indirizzo MAC del mittente del messaggio ARP
+        <br>
+        -u_int32_t _src_ip: Indirizzo IP del mittente del messaggio ARP
+        <br>
+        -u_int32_t _dst_ip: Indirizzo IP del destinatario del messaggio ARP
+        <br>
+        -bool * const src2dst: Flag che indica la direzione del messaggio: se True il messaggio è src --> dst (es: request) mentre se False il contrario (es: reply)
+        <br><br>
+        Risultato: puntatore all'elemento cercato, null altrimenti.
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+        <p><b>
+          void ArpStatsHashMatrix::lua(lua_State* vm)
+        </p></b>
+        <p>Alloca e popola lo stack della VM LUA</p>
+        Parametri:<br>
+        - lua_State* vm: Puntatore alla virtual machine LUA
+        <br>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <br><p>All'interno di <a href="https://github.com/ntop/ntopng/blob/dev/src/ArpStatsMatrixElement.cpp" download>
+        ArpStatsMatrixElement</a> sono presenti:
+        </p><br>
+
+        <p><b>
+          ArpStatsMatrixElement::ArpStatsMatrixElement(NetworkInterface *_iface, const u_int8_t _src_mac[6], 
+          const u_int8_t _dst_mac[6], const u_int32_t _src_ip, const u_int32_t _dst_ip)
+        </p></b>
+        Metodo Costruttore di un elemento della matrice ARP<br><br>
+        Parametri:<br>
+        - NetworkInterface *_iface: Puntatore all'interfaccia sul quale transitano i messaggi 
+        <br>
+        - u_int8_t _src_mac: Indirizzo MAC del mittente del messaggio ARP
+        <br>
+        - u_int8_t _dst_mac: Indirizzo MAC del destinatario del messaggio ARP
+        <br>
+        - u_int32_t _src_ip: Indirizzo IP del mittente del messaggio ARP
+        <br>
+        - u_int32_t _dst_ip: Indirizzo IP del destinatario del messaggio ARP
+        <br><br>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+          bool ArpStatsMatrixElement::equal(const u_int8_t _src_mac[6],
+          const u_int32_t _src_ip, const u_int32_t _dst_ip, bool * const src2dst)
+        </p></b>
+        <p>Funzione per comparare due elementi della matrice: compara gli indirizzi di rete che identificano un ArpStatsMatrixElement</p>
+        Parametri:<br>
+        - u_int8_t _src_mac: Indirizzo MAC del mittente del messaggio ARP
+        <br>
+        -u_int32_t _src_ip: Indirizzo IP del mittente del messaggio ARP
+        <br>
+        -u_int32_t _dst_ip: Indirizzo IP del destinatario del messaggio ARP
+        <br>
+        -bool * const src2dst: Flag che indica la direzione del messaggio: se True il messaggio è src --> dst (es: request) mentre se False il contrario (es: reply)
+        <br><br>
+        Risultato: True se uguali, False altrimenti
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+          u_int32_t ArpStatsMatrixElement::key()
+        </p></b>
+        <p>Funzione hash cheindicizza la tabella hash: è la somma dei byte degli indirizzi IP del mittente e destinatario</p>
+        Risultato:  intero rappresentatnte la chiave hash dell'elemento
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+          void ArpStatsMatrixElement::print(char *msg)
+        </p></b>
+        <p>Print a scopo debbugging: stampa sul terminale gli indirizzi di rete identificativi dell'elemento</p>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+        void ArpStatsMatrixElement::lua(lua_State* vm)
+        </p></b>
+        <p>Alloca e popola lo stack della VM LUA</p>
+        Parametri:<br>
+        - lua_State* vm: Puntatore alla virtual machine LUA
+        <br><br>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <br><p>All'interno di <a href="https://github.com/ntop/ntopng/blob/dev/src/LuaEngine.cpp" download>
+        LuaEngine</a> sono presenti:
+        </p><br>
+
+        <p><b>
+          static int ntop_get_arp_matrix_info(lua_State*vm)
+        </p></b>
+        <p>Funzione che interfaccia il livelli di scripting LUA con quello engine: la chiamata all'API</p>
+        Parametri:<br>
+        - lua_State*vm: Puntatore alla virtual machine LUA
+        <br><br>
+        Risultato: intero "CONST_LUA_OK" se andata a buon fine, "CONST_LUA_ERROR" altrimenti
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <br><p>All'interno di NetworkInterface sono presenti</p><br>
+
+        <p><b>
+          bool NetworkInterface::getArpStatsMatrixInfo(lua_State* vm)
+        </p></b>
+        <p>Funzione per invocare il passaggio a tabella LUA della ARP matrix</p>
+        Parametri:<br>
+        - lua_State* vm: Puntatore alla virtual machine LUA
+        <br><br>
+        Risultato: True se andata a buon fine, False altrimenti
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+        u_int32_t NetworkInterface::getArpHashMatrixSize()
+        </p></b>
+        <p>Getter per la dimensione della matrice</p>
+        Risultato: dimensione della tabella hash
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+        u_int NetworkInterface::getNumArpStatsMatrixElements()
+        </p></b>
+        <p>Getter per il numero di elementi della tabella hash</p>
+        Risultato:
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+          void NetworkInterface::lua_hash_tables_stats(lua_State *vm)
+        </p></b>
+        <p>Funzione per invocare il passaggio a tabella LUA delle stats di tutte le tabelle hash dell'interfaccia attiva</p>
+        Parametri:<br>
+        - lua_State* vm: Puntatore alla virtual machine LUA
+        <br><br>
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p><b>
+          ArpStatsMatrixElement* NetworkInterface::getArpHashMatrixElement(const u_int8_t _src_mac[6], 
+          const u_int8_t _dst_mac[6], const u_int32_t _src_ip, const u_int32_t _dst_ip, bool * const src2dst)
+        </p></b>
+        <p>Metodo getter: in caso l'elemento non sia presente, lo crea</p>
+        Parametri:<br>
+        - u_int8_t _src_mac: Indirizzo MAC del mittente del messaggio ARP
+        <br>
+        - u_int8_t _dst_mac: Indirizzo MAC del destinatario del messaggio ARP
+        <br>
+        -u_int32_t _src_ip: Indirizzo IP del mittente del messaggio ARP
+        <br>
+        -u_int32_t _dst_ip: Indirizzo IP del destinatario del messaggio ARP
+        <br>
+        -bool * const src2dst: Flag che indica la direzione del messaggio: se True il messaggio è src --> dst (es: request) mentre se False il contrario (es: reply)
+        <br><br>
+        Risultato: Elemento della matrice cercato o appena creato, null altrimenti.
+        <hr style="width:50px;border:2px solid rgb(67, 182, 192)" class="w3-round">
+
+        <!-- -------------- -->
+
+        <p>
+        Inolre, sempre all'intero di NetworkInterface, per quanto riguarda le politiche di gestione: <br>
+        - in "deleteDataStructures()" viene eliminata la arp_hash_matrix <br>
+        - in "cleanup()" viene fatta la cleanup della arp_hash_matrix <br>
+        - in "purgeIdleHostsMacsASesVlans()" viene fatta la purge della arp_hash_matrix<br>
+        - in "allocateStructures()" viene allocata la arp_hash_matrix<br>
+        </p>
+  
+    </div>
+    
+    <!-- Heatmap Graph -->
+    <div class="w3-container" id="graph" style="margin-top:75px">
+      <h1 class="w3-xxxlarge w3-text-black"><b>Heatmap Graph</b></h1>
+      <hr style="width:50px;border:5px solid rgb(67, 182, 192)" class="w3-round">
+
+      <p class = "w3-xlarge w3-text-black">Heatmap</p>
+      All'interno dell'interfaccia di ntopng è possibile avere una rappresentazione grafica della matrice ARP
+      <br><br>
+      I file che sono stati creati per il grafico:
+      <ul>
+          <li><p><a href="https://github.com/ntop/ntopng/blob/dev/scripts/lua/get_arp_matrix_data.lua" download>
+            get_arp_matrix_data.lua</a>; file incaricato di trasformare i dati della matrice ARP in dati rappresentabili dal grafico</p></li>
+          <li><p><a href="https://github.com/ntop/ntopng/blob/dev/httpdocs/js/heatmap.js" download>
+            heatmap.js</a>, file in cui il grafico viene generato</p></li>
+      </ul>
+      <br>
+      <p>
+      È possibile visualizzare il grafico, una volta attivata la ARP Matrix, tramite la Web GUI cliccando sul Tab "Hosts", nell'header di pagina, e poi "ARP Matrix Talkers"
+      </p>
+      <br><br><br><br>
+    </div>
+
+  </div> <!-- END PAGE CONTENT -->
+
+  <script>
+    // Script to open and close sidebar
+    function w3_open() {
+        document.getElementById("mySidebar").style.display = "block";
+        document.getElementById("myOverlay").style.display = "block";
+    }
+    
+    function w3_close() {
+        document.getElementById("mySidebar").style.display = "none";
+        document.getElementById("myOverlay").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>
